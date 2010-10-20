@@ -15,14 +15,17 @@ import Control.Monad(foldM, when)
 
 import qualified System.IO.Strict as Strict
 
-version :: String
-version = "0.0.3"
+import Paths_hh(version)
+import Data.Version(showVersion)
 
 defOutputFile, defHistFileName, defFavFileName, rcFileName :: FilePath
 rcFileName      = "~/.hhrc"
 defFavFileName  = "~/.hh_favorites"
 defHistFileName = "~/.bash_history"
 defOutputFile   = "~/.hh.last"
+
+mkVersion :: String
+mkVersion = showVersion version
 
 data Config = Config {
     currMode            :: Mode,
@@ -120,7 +123,7 @@ type SelectState = (Int, Int, String)
 
 helpScreen :: Vty -> (Int, Int) -> IO ()
 helpScreen vty bounds@(_, height) = do
-    update vty $ pic_for_image . vert_cat $ map (string def_attr) $ text ++ replicate (height - length text - 1) " " ++ ["hh " ++ version ++ ", q/Esc/Enter to resume" ]
+    update vty $ pic_for_image . vert_cat $ map (string def_attr) $ text ++ replicate (height - length text - 1) " " ++ ["hh " ++ mkVersion ++ ", q/Esc/Enter to resume" ]
     next_event vty >>= \e -> case e of
         EvKey (KASCII 'q') []   -> return ()
         EvKey KEsc       []     -> return ()
@@ -329,7 +332,7 @@ parseArgs args = case getOpt Permute options args of
         (_,     _, errs)    -> ioError $ userError (concat errs ++ usageInfo header options)
 
 handleOpt :: Config -> OptFlag -> IO Config
-handleOpt cfg Version        = putStrLn version >> return cfg
+handleOpt cfg Version        = putStrLn mkVersion >> return cfg
 handleOpt cfg Help           = putStrLn (usageInfo header options) >> return cfg
 handleOpt cfg Init           = loadConfig >>= saveConfig >> return cfg
 handleOpt cfg (FromFile fn)  = return $ cfg { dataFileName = fn }
