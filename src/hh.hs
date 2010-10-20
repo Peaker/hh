@@ -68,13 +68,11 @@ type IsFavFunc = String -> Bool
 
 data Mode = Favorites | Freq | Recent deriving (Eq, Show, Read, Bounded, Enum)
 
-nextMode :: Mode -> Mode
-nextMode m
+boundedPred, boundedSucc :: (Bounded a, Enum a, Eq a) => a -> a
+boundedSucc m
     | m == maxBound = m
     | otherwise     = succ m
-
-prevMode :: Mode -> Mode
-prevMode m
+boundedPred m
     | m == minBound = m
     | otherwise     = pred m
 
@@ -303,8 +301,8 @@ play state cfg = do
         Refresh  state'             -> play state' cfg
     where
         b                            = fromJust $ lookup (currMode cfg) modes
-        next                         = nextMode $ currMode cfg
-        prev                         = prevMode $ currMode cfg
+        next                         = boundedSucc $ currMode cfg
+        prev                         = boundedPred $ currMode cfg
         title                        = mbTitle b
         fn                           = mbFn b cfg
         showFunc                     = mbShow b
